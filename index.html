@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Galeria de Fotos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f5;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #pesquisa {
+      display: block;
+      margin: 0 auto 30px auto;
+      padding: 10px;
+      width: 60%;
+      max-width: 400px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    .galeria {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .foto {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      text-align: center;
+      transition: transform 0.3s ease;
+      cursor: pointer;
+    }
+
+    .foto:hover {
+      transform: scale(1.05);
+    }
+
+    .foto img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+    }
+
+    .foto p {
+      padding: 10px;
+      font-weight: bold;
+      background: #fafafa;
+      margin: 0;
+    }
+
+    /* Estilo do modal */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal img {
+      max-width: 90%;
+      max-height: 80%;
+      border-radius: 10px;
+      box-shadow: 0 0 20px #000;
+    }
+
+    .modal span {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 40px;
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Galeria de Fotos</h1>
+  <input type="text" id="pesquisa" placeholder="Pesquisar pelo nome..." oninput="filtrarImagens()">
+
+  <div class="galeria" id="galeria"></div>
+
+  <!-- Modal (ampliação) -->
+  <div class="modal" id="modal">
+    <span onclick="fecharModal()">&times;</span>
+    <img id="modal-img" src="">
+  </div>
+
+  <script>
+    const imagens = [
+      { nome: "Montanha", url: "https://picsum.photos/id/1015/400/300" },
+      { nome: "Ursos", url: "https://picsum.photos/id/1020/400/300" },
+      { nome: "Rio", url: "https://picsum.photos/id/1011/400/300" },
+      { nome: "Floresta", url: "https://picsum.photos/id/1043/400/300" },
+      { nome: "Céu Azul", url: "https://picsum.photos/id/1056/400/300" },
+      { nome: "Água Viva", url: "https://picsum.photos/id/1069/400/300" },
+      { nome: "Leao", url: "https://picsum.photos/id/1074/400/300" },
+      { nome: "Foca", url: "https://picsum.photos/id/1084/400/300" },
+      { nome: "Morangos vermelhos", url: "https://picsum.photos/id/1080/400/300" },
+      { nome: "Esqueci o nome do bicho", url: "https://picsum.photos/id/1003/400/300" },
+      { nome: "homem junto do seu cao", url: "https://picsum.photos/id/1012/400/300" },
+      { nome: "Interior de Edificio", url: "https://picsum.photos/id/1033/400/300" },
+      { nome: "Abutre", url: "https://picsum.photos/id/1024/400/300" },
+      { nome: "Floresta Por do Sol", url: "https://picsum.photos/id/1037/400/300" },
+      { nome: "Castelo do Jlo", url: "https://picsum.photos/id/1040/400/300" },
+      { nome: "Noite", url: "https://picsum.photos/id/1042/400/300" },
+      { nome: "Praia", url: "https://picsum.photos/id/1049/400/300" },
+      { nome: "Zona Rochosa", url: "https://picsum.photos/id/1050/400/300" },
+      { nome: "Beira-Mar", url: "https://picsum.photos/id/1052/400/300" },
+      { nome: "Café", url: "https://picsum.photos/id/1060/400/300" },
+      { nome: "Cachorrinho", url: "https://picsum.photos/id/1062/400/300" },
+      { nome: "Caminho nublado", url: "https://picsum.photos/id/1064/400/300" },
+      { nome: "Por do Sol na Cidade", url: "https://picsum.photos/id/1067/400/300" },
+      { nome: "Carro Velho", url: "https://picsum.photos/id/1070/400/300" },
+      { nome: "Carro 0Km", url: "https://picsum.photos/id/1071/400/300" },
+      { nome: "Edificios", url: "https://picsum.photos/id/1075/400/300" },
+      { nome: "Arte", url: "https://picsum.photos/id/1081/400/300" },
+      { nome: "Tocando Piano", url: "https://picsum.photos/id/1082/400/300" },
+      { nome: "Férias", url: "https://picsum.photos/id/1083/400/300" },
+      { nome: "Predio Velho", url: "https://picsum.photos/id/1054/400/300" }
+    ];
+
+    function carregarGaleria() {
+      const galeria = document.getElementById('galeria');
+      galeria.innerHTML = '';
+
+      imagens.forEach(imagem => {
+        const div = document.createElement('div');
+        div.classList.add('foto');
+        div.setAttribute('data-nome', imagem.nome.toLowerCase());
+
+        div.innerHTML = `
+          <img src="${imagem.url}" alt="${imagem.nome}" onclick="abrirModal('${imagem.url}')">
+          <p>${imagem.nome}</p>
+        `;
+        galeria.appendChild(div);
+      });
+    }
+
+    function filtrarImagens() {
+      const termo = document.getElementById('pesquisa').value.toLowerCase();
+      const fotos = document.querySelectorAll('.foto');
+
+      fotos.forEach(foto => {
+        const nome = foto.getAttribute('data-nome');
+        foto.style.display = nome.includes(termo) ? 'block' : 'none';
+      });
+    }
+
+    function abrirModal(src) {
+      const modal = document.getElementById('modal');
+      const modalImg = document.getElementById('modal-img');
+      modal.style.display = 'flex';
+      modalImg.src = src;
+    }
+
+    function fecharModal() {
+      document.getElementById('modal').style.display = 'none';
+    }
+
+    // Fechar o modal ao clicar fora da imagem
+    window.onclick = function(event) {
+      const modal = document.getElementById('modal');
+      if (event.target === modal) {
+        fecharModal();
+      }
+    }
+
+    carregarGaleria();
+  </script>
+  <footer style="text-align: center; padding: 20px; margin-top: 40px; color: #666; font-size: 14px;">
+    &copy; 2025 Grupo 4 (Os Melhores). Todos os direitos reservados.
+  </footer>
+
+</body>
+</html>
